@@ -18,6 +18,10 @@ Este laboratorio permite integrar conocimientos de procesamiento digital de señ
 
 El sistema nervioso autónomo quien regula funciones involuntarias esenciales para la supervivencia, como la frecuencia cardíaca, la presión arterial y la respiración. Está compuesto por dos ramas principales:
 
+<img width="474" height="430" alt="image" src="https://github.com/user-attachments/assets/0b1d9e93-09a1-4691-b20b-d1a25ed95bd4" />
+
+
+
 # Sistema Nervioso Simpático (SNS)
 
 Se activa en situaciones de alerta o estrés. Sus efectos sobre el corazón incluyen:
