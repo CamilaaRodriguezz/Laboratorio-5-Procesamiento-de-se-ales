@@ -42,11 +42,17 @@ El balance simpático-parasimpático se refleja directamente en la dinámica de 
 
  # Señal Electrocardiográfica (ECG) y Picos R
 
+ <img width="1600" height="1253" alt="image" src="https://github.com/user-attachments/assets/eed7422a-1ccb-4a6e-b621-175a0c657aee" />
+
+
 El ECG registra la actividad eléctrica del corazón mediante electrodos superficiales.
 El complejo QRS representa la despolarización ventricular, y dentro de él, el pico R es el punto de mayor amplitud.
 La detección de estos picos permite calcular los intervalos R-R, es decir, el tiempo entre latidos consecutivos. Esta serie temporal constituye el insumo principal para el análisis de la HRV.
 
  # Variabilidad de la Frecuencia Cardíaca (HRV)
+
+ <img width="4166" height="1944" alt="image" src="https://github.com/user-attachments/assets/e427f3a8-ae78-4977-9031-4ce1e530c8c4" />
+
 
 La HRV se define como la fluctuación natural de los intervalos R-R a lo largo del tiempo. Estas variaciones reflejan cómo el SNA modula la actividad del corazón ante estímulos internos y externos.
 
@@ -64,6 +70,7 @@ Es la desviación estándar de los intervalos R-R. Refleja la variabilidad globa
 Estos parámetros permiten comparar estados fisiológicos diferentes, como el reposo versus la lectura en voz alta evaluada en este laboratorio.
 
 # Procesamiento Digital aplicado a la señal ECG
+
 ## Filtrado Digital e IIR
 
 Las señales ECG contienen ruido de múltiples fuentes: interferencia de red, artefactos musculares, ruido de electrodos y deriva de línea base. Por ello es necesario aplicar filtros digitales antes del análisis.
@@ -74,6 +81,9 @@ Frecuencias de corte,Orden del filtro,tipo de aproximación (Butterworth, Chebys
 La correcta elección del filtro garantiza que la señal ECG conserve la morfología necesaria para detectar con precisión los picos R.
 
 # Diagrama de Poincaré
+
+<img width="569" height="595" alt="image" src="https://github.com/user-attachments/assets/035b3412-029b-4f67-bf64-7f639b3b3538" />
+
 
 El diagrama de Poincaré es una herramienta gráfica utilizada para estudiar la dinámica de la serie de intervalos R-R. Consiste en representar cada intervalo 
 𝑅𝑅𝑛 frente al siguiente 𝑅𝑅𝑛+1RRn+1
@@ -91,3 +101,46 @@ Relaciona la dispersión perpendicular a la línea de identidad. Un CVI mayor in
 Relaciona la dispersión a lo largo de la línea de identidad. Valores altos están asociados con mayor actividad simpática.
 
 Estos índices son especialmente útiles para comparar respuestas autonómicas en diferentes tareas, como el reposo frente a la verbalización.
+
+# Procedimiento analisis y resultados:
+
+## PARTE A. 
+### a. Fundamento teórico 
+Antes de iniciar la práctica, los estudiantes deberán realizar una investigación 
+teórica que incluya los siguientes temas:  - - - - 
+Actividad simpática y parasimpática del sistema nervioso autónomo, 
+Efecto de la actividad simpática y parasimpática en la frecuencia 
+cardíaca, 
+Variabilidad de la frecuencia cardíaca (HRV) obtenida a partir de la señal 
+electrocardiográfica (ECG), 
+Diagrama de Poincaré como herramienta de análisis de la serie R-R. 
+## b. Adquisición de la señal ECG  
+Seleccionar a un sujeto de prueba para adquirir la señal electrocardiográfica; 
+grabar la señal ECG durante 4 minutos, de los cuales, el participante 
+permanecerá inmóvil y en silencio total durante los 2 primeros minutos, y 
+luego leerá en voz alta un pasaje de un texto seleccionado por el equipo 
+durante los dos últimos minutos. 
+Verificar que la frecuencia de muestreo y los niveles de cuantificación 
+establecidos sean los apropiados para este tipo de señal.  
+## PARTE B 
+c. Pre-procesamiento de la señal 
+Aplicar los filtros digitales necesarios para eliminar el ruido de la señal, 
+demostrando su diseño. 
+- Diseñar un filtro IIR de acuerdo con los parámetros de la señal, 
+- Obtener la ecuación en diferencias del filtro, 
+- Implementar el filtro a la señal obtenida asumiendo parámetros 
+iniciales en 0. 
+Dividir la señal filtrada en dos segmentos de señal con duración de 2 minutos 
+cada uno. 
+Identificar los picos R en cada uno de los segmentos, calcular los intervalos 
+R-R y obtener una nueva señal con dicha información.  
+d. Análisis de la HRV en el dominio del tiempo 
+Comparar los valores de los parámetros básicos de la HRV en el dominio del 
+tiempo, como la media de los intervalos R-R y su desviación estándar, entre 
+ambos segmentos de señal ECG.
+## PARTE C 
+e. Construcción del diagrama de Poincaré 
+Obtener el diagrama de Poincaré para cada segmento de señal ECG y 
+comparar la dispersión de la nube de puntos que se obtuvo para cada caso.   
+Calcular los valores de los índices tanto de actividad vagal (CVI) como de 
+actividad simpática (CSI) que se obtienen a partir del diagrama de Poincaré. 
