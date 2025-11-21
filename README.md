@@ -143,6 +143,8 @@ Diseño de filtro IIR con los parametros de la señal
 codigo de python 
 filto digital butterword
 def design_bandpass_butter(lowcut, highcut, fs, order=4):
+
+```python  
     nyq = 0.5 * fs
     if lowcut <= 0:
         low = 0.0001
@@ -156,6 +158,10 @@ def design_bandpass_butter(lowcut, highcut, fs, order=4):
 
 def apply_filter(b, a, signal):
     return filtfilt(b, a, signal)
+```
+
+
+
 ## PARTE C 
 e. Construcción del diagrama de Poincaré 
 Obtener el diagrama de Poincaré para cada segmento de señal ECG y 
