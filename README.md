@@ -138,6 +138,24 @@ d. Análisis de la HRV en el dominio del tiempo
 Comparar los valores de los parámetros básicos de la HRV en el dominio del 
 tiempo, como la media de los intervalos R-R y su desviación estándar, entre 
 ambos segmentos de señal ECG.
+
+Diseño de filtro IIR con los parametros de la señal
+codigo de python 
+filto digital butterword
+def design_bandpass_butter(lowcut, highcut, fs, order=4):
+    nyq = 0.5 * fs
+    if lowcut <= 0:
+        low = 0.0001
+    else:
+        low = lowcut / nyq
+    high = min(highcut / nyq, 0.999)
+    if low >= high:
+        raise ValueError("Frecuencias de corte inválidas para el fs dado.")
+    b, a = butter(order, [low, high], btype='band')
+    return b, a
+
+def apply_filter(b, a, signal):
+    return filtfilt(b, a, signal)
 ## PARTE C 
 e. Construcción del diagrama de Poincaré 
 Obtener el diagrama de Poincaré para cada segmento de señal ECG y 
