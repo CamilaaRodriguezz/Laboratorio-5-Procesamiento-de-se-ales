@@ -168,3 +168,17 @@ Obtener el diagrama de Poincaré para cada segmento de señal ECG y
 comparar la dispersión de la nube de puntos que se obtuvo para cada caso.   
 Calcular los valores de los índices tanto de actividad vagal (CVI) como de 
 actividad simpática (CSI) que se obtienen a partir del diagrama de Poincaré. 
+
+
+## Diagramas de flujo
+### Parte A:
+
+
+<img width="297" height="663" alt="image" src="https://github.com/user-attachments/assets/7da46bce-8784-4032-ac08-c03289793cae" />
+
+
+
+## Conclusiones
+
+
+## Bibliografia
