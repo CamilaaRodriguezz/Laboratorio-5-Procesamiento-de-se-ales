@@ -123,22 +123,13 @@ durante los dos últimos minutos.
 Verificar que la frecuencia de muestreo y los niveles de cuantificación 
 establecidos sean los apropiados para este tipo de señal.  
 ## PARTE B 
-c. Pre-procesamiento de la señal 
-Aplicar los filtros digitales necesarios para eliminar el ruido de la señal, 
-demostrando su diseño. 
-- Diseñar un filtro IIR de acuerdo con los parámetros de la señal, 
-- Obtener la ecuación en diferencias del filtro, 
-- Implementar el filtro a la señal obtenida asumiendo parámetros 
-iniciales en 0. 
-Dividir la señal filtrada en dos segmentos de señal con duración de 2 minutos 
-cada uno. 
-Identificar los picos R en cada uno de los segmentos, calcular los intervalos 
-R-R y obtener una nueva señal con dicha información.  
-d. Análisis de la HRV en el dominio del tiempo 
-Comparar los valores de los parámetros básicos de la HRV en el dominio del 
-tiempo, como la media de los intervalos R-R y su desviación estándar, entre 
-ambos segmentos de señal ECG.
-
+b. Adquisición de la señal ECG
+La señal electrocardiográfica (ECG) utilizada en este proyecto fue adquirida siguiendo el protocolo establecido en la guía de práctica. Se seleccionó un sujeto de prueba y se realizó un registro de 4 minutos, dividido en dos fases:
+Fase 1: Reposo (0–2 min)
+El participante permaneció inmóvil, en silencio y en condición basal para registrar la actividad cardíaca sin estímulos externos.
+Fase 2: Lectura en voz alta (2–4 min)
+El participante leyó un fragmento de texto seleccionado, con el fin de inducir cambios fisiológicos asociados al esfuerzo cognitivo y la modulación autonómica.
+La frecuencia de muestreo de 1000 Hz garantiza una resolución temporal suficiente para detectar los picos R con precisión y permite el análisis de HRV sin distorsiones.
 Diseño de filtro IIR con los parametros de la señal
 codigo de python 
 filto digital butterword
