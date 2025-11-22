@@ -121,7 +121,13 @@ permanecerá inmóvil y en silencio total durante los 2 primeros minutos, y
 luego leerá en voz alta un pasaje de un texto seleccionado por el equipo 
 durante los dos últimos minutos. 
 Verificar que la frecuencia de muestreo y los niveles de cuantificación 
-establecidos sean los apropiados para este tipo de señal.  
+establecidos sean los apropiados para este tipo de señal. 
+
+
+
+<img width="1389" height="390" alt="image" src="https://github.com/user-attachments/assets/7e1532b4-946b-4510-a43f-ec0b71fc3638" />
+
+
 ## PARTE B 
 b. Adquisición de la señal ECG
 La señal electrocardiográfica (ECG) utilizada en este proyecto fue adquirida siguiendo el protocolo establecido en la guía de práctica. Se seleccionó un sujeto de prueba y se realizó un registro de 4 minutos, dividido en dos fases:
@@ -130,8 +136,8 @@ El participante permaneció inmóvil, en silencio y en condición basal para reg
 Fase 2: Lectura en voz alta (2–4 min)
 El participante leyó un fragmento de texto seleccionado, con el fin de inducir cambios fisiológicos asociados al esfuerzo cognitivo y la modulación autonómica.
 La frecuencia de muestreo de 1000 Hz garantiza una resolución temporal suficiente para detectar los picos R con precisión y permite el análisis de HRV sin distorsiones.
-Diseño de filtro IIR con los parametros de la señal
-codigo de python 
+### Diseño del filtro
+Este filtro se diseñó e implementó como un filtro IIR ( infinite impulse response) qué se relaciona con el Butter World en configuración pasa banda. Nuestra elección del Butterworth es debido a su respuesta en frecuencia plana en la banda. De paso, qué minimiza la distorsión de la onda QRS, que para nosotros como futuros ingenieros biomédicos es vital.
 filto digital butterword
 def design_bandpass_butter(lowcut, highcut, fs, order=4):
 
