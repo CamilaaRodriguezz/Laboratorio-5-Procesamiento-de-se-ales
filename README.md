@@ -322,7 +322,7 @@ plt.show()
 Nuestra frecuencia de muestreo fue de 1000 Hertz, las frecuencias de corte fueron de 0.5 Hz a 40 Hz.
 
 El orden del filtro fue de orden cuatro para la función de transferencia que se dio en el diseño, ya que este es un filtro, pasa banda, quiere decir que es un filtro IIR de octavo orden, porque hay cuatro polos para el corte bajo y cuatro para el corte alto lo que nos da una atenuación lo suficientemente amplia en la rechaza banda sin introducir una complejidad computacional.
-
+c.
 Implementación y ecuación en diferencias
 El filtro se implementó a través de su ecuación de diferencias, utilizando los coeficientes normalizados B, del numerador y A, del denominador que se obtuvieron en el diseño. A continuación, la ecuación fundamental.
 
@@ -347,8 +347,49 @@ Los tiempos de ocurrencia de los picos se utilizaron para calcular la serie de i
 <img width="1041" height="678" alt="image" src="https://github.com/user-attachments/assets/03261957-1d2f-44bf-8402-53f8fb2c8d6f" />
 
 
+Las gráficas muestran los intervalos R-R de una señal cardíaca procesada. Cada punto representa el tiempo que pasa entre un latido y el siguiente. En ambos segmentos se observa un comportamiento muy variable: los intervalos suben hasta valores altos (4 a 6 segundos) y luego bajan bruscamente a valores muy bajos (alrededor de 0.5–1 segundo). Esta alternancia rápida entre intervalos largos y cortos indica una señal con una variabilidad extrema y poco típica de un ritmo cardíaco real. El patrón se repite a lo largo de cada segmento, lo que sugiere que la señal fue reconstruida, procesada o modificada artificialmente durante el análisis. En conclusión, ambas gráficas representan una señal R-R altamente irregular y con cambios bruscos, generada probablemente por el procedimiento de segmentación o transformación aplicado a la señal original.
+
 <img width="1109" height="777" alt="image" src="https://github.com/user-attachments/assets/b28cd08d-fe71-495b-af5d-a6604fded714" />
 
+
+### D. Análisis cualitativo de la variabilidad de la frecuencia cardiaca.
+Esta parte se centró en la estadística de los intervalos R R. Generada en la etapa del pre procesamiento, comparando el segmento uno y el segmento dos.
+
+La tabla, a continuación resumir los valores obtenidos para ambos segmentos, en todas las medidas. La diferencia de S2 versus S1, fue de reducción.
+
+
+<img width="461" height="127" alt="image" src="https://github.com/user-attachments/assets/cb467284-915a-4dd3-9a0b-5b0d1db4c2b6" />
+
+La tabla muestra tres métricas de variabilidad de los intervalos R-R para dos segmentos de la señal (0–2 min y 2–4 min). La media RR es prácticamente igual en ambos segmentos, lo que indica que la frecuencia cardíaca promedio se mantuvo estable. El SDNN y el RMSSD son altos en los dos periodos, lo que refleja una señal con variaciones amplias y cambios bruscos entre latidos. En el Segmento 2 ambos valores aumentan ligeramente, lo que sugiere que durante ese intervalo la variabilidad total y la variabilidad de corto plazo fueron un poco mayores. En general, ambos segmentos presentan un comportamiento muy similar, con una señal altamente irregular como la observada en las gráficas de los intervalos R-R.
+
+```python  
+import numpy as np
+import pandas as pd
+
+# ======================================
+# rr1 y rr2 ya deben existir del paso anterior
+# rr1 = intervalos RR del segmento 1 (0–2 min)
+# rr2 = intervalos RR del segmento 2 (2–4 min)
+# ======================================
+
+# --- Métricas de HRV en dominio del tiempo ---
+
+def hrv_time_domain(rr):
+    mean_rr = np.mean(rr)                  # media RR
+    sdnn = np.std(rr, ddof=1)              # desviación estándar RR
+    rmssd = np.sqrt(np.mean(np.diff(rr)**2))  # RMSSD
+    return mean_rr, sdnn, rmssd
+
+mean1, sdnn1, rmssd1 = hrv_time_domain(rr1)
+mean2, sdnn2, rmssd2 = hrv_time_domain(rr2)
+
+# Tabla en pandas para mostrar resultados
+tabla = pd.DataFrame({
+    "Métrica": ["Media RR (s)", "SDNN (s)", "RMSSD (s)"],
+    "Segmento 1 (0–2 min)": [mean1, sdnn1, rmssd1],
+    "Segmento 2 (2–4 min)": [mean2, sdnn2, rmssd2]
+})
+```
 
 
 ## PARTE C 
@@ -358,6 +399,111 @@ comparar la dispersión de la nube de puntos que se obtuvo para cada caso.
 Calcular los valores de los índices tanto de actividad vagal (CVI) como de 
 actividad simpática (CSI) que se obtienen a partir del diagrama de Poincaré. 
 
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+import pandas as pd
+
+# Función para obtener SD1, SD2, CVI y CSI
+def poincare_indices(rr):
+    rr = np.asarray(rr)
+
+    # Puntos para el diagrama (RR_n, RR_{n+1})
+    rr_n = rr[:-1]
+    rr_n1 = rr[1:]
+
+    # Diferencias sucesivas
+    diff_rr = rr_n1 - rr_n
+
+    # SD1 y SD2 según definiciones estándar
+    sd1 = np.sqrt(0.5) * np.std(diff_rr, ddof=1)            # corto plazo (vagal)
+    sd2 = np.sqrt(2 * np.std(rr, ddof=1)**2 - 0.5 * np.std(diff_rr, ddof=1)**2)  # largo plazo
+
+    # Índices de actividad autonómica
+    cvi = np.log10(sd1 * sd2)      # Cardiac Vagal Index
+    csi = sd2 / sd1                # Cardiac Sympathetic Index
+
+    return rr_n, rr_n1, sd1, sd2, cvi, csi
+
+# Calcular índices para cada segmento
+rr1_n, rr1_n1, sd1_1, sd2_1, cvi_1, csi_1 = poincare_indices(rr1)
+rr2_n, rr2_n1, sd1_2, sd2_2, cvi_2, csi_2 = poincare_indices(rr2)
+
+print("Segmento 1 (0–2 min):")
+print("  SD1  =", sd1_1, "s")
+print("  SD2  =", sd2_1, "s")
+print("  CVI  =", cvi_1)
+print("  CSI  =", csi_1)
+
+print("\nSegmento 2 (2–4 min):")
+print("  SD1  =", sd1_2, "s")
+print("  SD2  =", sd2_2, "s")
+print("  CVI  =", cvi_2)
+print("  CSI  =", csi_2)
+
+# Diagramas de Poincaré para cada segmento
+plt.figure(figsize=(6,6))
+plt.scatter(rr1_n, rr1_n1, alpha=0.6)
+plt.plot([min(rr1), max(rr1)], [min(rr1), max(rr1)], 'r--', label='y = x')
+plt.xlabel("RRₙ (s)")
+plt.ylabel("RRₙ₊₁ (s)")
+plt.title("Diagrama de Poincaré - Segmento 1 (0–2 min)")
+plt.grid(True)
+plt.axis('equal')
+plt.legend()
+plt.tight_layout()
+plt.show()
+
+plt.figure(figsize=(6,6))
+plt.scatter(rr2_n, rr2_n1, alpha=0.6)
+plt.plot([min(rr2), max(rr2)], [min(rr2), max(rr2)], 'r--', label='y = x')
+plt.xlabel("RRₙ (s)")
+plt.ylabel("RRₙ₊₁ (s)")
+plt.title("Diagrama de Poincaré - Segmento 2 (2–4 min)")
+plt.grid(True)
+plt.axis('equal')
+plt.legend()
+plt.tight_layout()
+plt.show()
+
+# Tabla comparativa
+
+tabla_poincare = pd.DataFrame({
+    "Métrica": ["SD1 (s)", "SD2 (s)", "CVI", "CSI"],
+    "Segmento 1 (0–2 min)": [sd1_1, sd2_1, cvi_1, csi_1],
+    "Segmento 2 (2–4 min)": [sd1_2, sd2_2, cvi_2, csi_2]
+})
+
+tabla_poincare
+
+```
+El diagrama de Poincaré es una herramienta usada en variabilidad de la frecuencia cardiaca (HRV). Se construye graficando cada intervalo RRₙ (latido actual) contra RRₙ₊₁ (latido siguiente).
+Cada punto representa la relación entre dos latidos consecutivos.
+
+Este tipo de análisis permite evaluar dos componentes importantes del sistema nervioso autónomo:
+
+SD1 → variabilidad a corto plazo
+
+SD2 → variabilidad a largo plazo
+
+CVI y CSI → índices derivados que reflejan la complejidad y la estabilidad de la señal.
+
+El diagrama de Poincaré presentado corresponde al análisis de variabilidad de los intervalos RR del corazón. En este tipo de gráfico se coloca cada intervalo RRₙ en el eje horizontal y el siguiente intervalo RRₙ₊₁ en el eje vertical. La línea roja punteada representa la identidad (RRₙ = RRₙ₊₁), que permite visualizar si los puntos se encuentran por encima o por debajo de esta referencia. Cuando los puntos están muy dispersos alrededor de la línea, significa que existe una variabilidad importante entre un latido y el siguiente.
+
+En el Segmento 1 (0–2 minutos), se observa que los puntos están distribuidos en distintas zonas del gráfico, con varios valores muy altos entre 4 y 6 segundos, que pueden corresponder a pausas o artefactos. El valor SD1 es 2.65 s y representa la variabilidad a corto plazo; al ser elevado indica cambios rápidos entre latidos consecutivos. El SD2 es 1.48 s y representa la variabilidad a largo plazo; al ser menor que SD1, implica que los cambios rápidos predominan sobre los cambios lentos. Los índices CVI y CSI también muestran variabilidad moderada con una estabilidad media.
+
+En el Segmento 2 (2–4 minutos), los valores SD1 y SD2 aumentan ligeramente (2.70 s y 1.55 s respectivamente), lo que significa que la señal presenta un poco más de variabilidad tanto a corto como a largo plazo. También se observa una distribución parecida de puntos, aunque con una ligera mejora en la estabilidad y complejidad según los valores de CVI y CSI, que aumentan respecto al primer segmento.
+
+En general, el diagrama muestra una señal con variabilidad alta entre latidos, fuerte dispersión y presencia de intervalos RR muy largos que influyen en los índices calculados. El Segmento 2 parece ligeramente más estable y con mayor variabilidad global que el Segmento 1, aunque ambos conservan un patrón similar.
+
+<img width="645" height="766" alt="image" src="https://github.com/user-attachments/assets/60935651-767b-4753-9565-f349b741cfa1" />
+
+<img width="628" height="769" alt="image" src="https://github.com/user-attachments/assets/c267a32c-d904-4f3a-822e-f855b1bd3867" />
+
+El diagrama de Poincaré del Segmento 2 (2–4 minutos) muestra la relación entre cada intervalo RR y el siguiente (RRₙ vs. RRₙ₊₁). Los puntos representan la variabilidad latido a latido, mientras que la línea roja punteada indica la referencia donde ambos intervalos serían iguales (RRₙ = RRₙ₊₁). En este segmento se observa una distribución similar a la del primer tramo, con dos grupos principales de puntos: uno alrededor de valores RR largos, entre 5 y 6 segundos, y otro alrededor de valores mucho menores, inferiores a 1 segundo. Esta dispersión amplia indica la presencia de cambios bruscos entre latidos consecutivos, lo cual se ve reflejado en el ensanchamiento del gráfico. La separación marcada entre ambos conglomerados sugiere que existen pausas prolongadas o artefactos que afectan la regularidad de la señal.
+
+Los valores de las métricas confirman esta observación: SD1, que evalúa la variabilidad a corto plazo, es ligeramente mayor en este segmento (2.703 s) en comparación con el primer tramo, lo cual indica una mayor dispersión perpendicular a la línea de identidad y, por tanto, cambios rápidos entre latidos. SD2, que refleja la variabilidad a largo plazo, también aumenta (1.547 s), lo que sugiere que la señal en general es más irregular. Los índices CVI y CSI, que describen la complejidad y la estabilidad de la variabilidad cardiaca, también muestran valores mayores que en el Segmento 1, indicando un aumento leve en la variabilidad global y en la dispersión estructural del patrón. En conjunto, el Segmento 2 presenta una variabilidad algo más elevada que el Segmento 1 y un patrón ligeramente más disperso, aunque mantiene la misma estructura general dominada por intervalos RR largos combinados con intervalos cortos.
+
 
 ## Diagramas de flujo
 ### Parte A:
@@ -365,9 +511,40 @@ actividad simpática (CSI) que se obtienen a partir del diagrama de Poincaré.
 
 <img width="297" height="663" alt="image" src="https://github.com/user-attachments/assets/7da46bce-8784-4032-ac08-c03289793cae" />
 
+## Parte B
+
+<img width="459" height="2175" alt="image" src="https://github.com/user-attachments/assets/6497d7ad-2550-4d4d-ab46-bcb1696999fa" />
+
+
+<img width="433" height="2307" alt="image" src="https://github.com/user-attachments/assets/cdc4ea90-b15a-49fb-95b8-920168df86a2" />
+
+## Parte C
+
+<img width="1024" height="1536" alt="image" src="https://github.com/user-attachments/assets/b286fc22-64ea-4631-bb6e-4f02134e1357" />
 
 
 ## Conclusiones
 
+-El filtrado digital IIR Butterworth fue adecuado para el análisis de HRV, ya que permitió remover eficazmente el ruido de línea base y mantener la morfología del complejo QRS. Esto permitió una detección confiable de picos R y un cálculo robusto de los intervalos R-R.
+-La detección de picos R mediante find_peaks (con distancia mínima de 0.3 s y umbral dinámico) funcionó correctamente para separar latidos reales de posibles artefactos. La cantidad de picos detectados fue coherente con un ritmo cardiaco fisiológico para la duración de los segmentos.
+Las series de intervalos R-R mostraron una alta variabilidad, con cambios bruscos y valores extremos no completamente esperados en un registro normal. Esto sugiere que la señal original pudo verse afectada por:
+errores de adquisición,artefactos,o transformaciones realizadas durante la importación o segmentación de datos.
+Aun así, la señal fue útil para aplicar correctamente los métodos de análisis de HRV.
+Los parámetros de HRV en el dominio del tiempo (Media RR, SDNN y RMSSD) mostraron valores similares entre los dos segmentos (reposo y lectura). Esto indica que el cambio de actividad no generó una modificación clara del balance autonómico en la serie registrada.
+-El diagrama de Poincaré evidenció una dispersión amplia en ambos segmentos, con valores elevados de SD1 (componente parasimpática) y SD2 (componente simpática). Esto coincide con la alta irregularidad vista en las series RR. Las variaciones entre CVI y CSI de los dos periodos fueron pequeñas, lo que sugiere que el estímulo de lectura no generó un cambio autonómico marcado.
+
 
 ## Bibliografia
+ask Force of the European Society of Cardiology and the North American Society of Pacing and Electrophysiology. Heart rate variability: Standards of measurement, physiological interpretation, and clinical use. Circulation, 1996.
+
+Shaffer, F., & Ginsberg, J. P. An Overview of Heart Rate Variability Metrics and Norms. Frontiers in Public Health, 2017.
+
+Brennan, M., Palaniswami, M., & Kamen, P. Do existing measures of Poincaré plot geometry reflect nonlinear features of heart rate variability? IEEE Transactions on Biomedical Engineering, 2001.
+Webster, J. G. (Ed.). Medical Instrumentation: Application and Design. Wiley.
+
+Rangayyan, R. M. Biomedical Signal Analysis: A Case-Study Approach. Wiley-IEEE Press.
+
+Sörnmo, L., & Laguna, P. Bioelectrical Signal Processing in Cardiac and Neurological Applications. Elsevier Academic Press.
+Acharya, U. R., et al. Heart rate variability: a review. Medical & Biological Engineering & Computing, 2006.
+
+Berntson, G. G., et al. Heart rate variability: origins, methods, and interpretive caveats. Psychophysiology, 1997.
