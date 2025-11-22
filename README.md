@@ -123,6 +123,43 @@ durante los dos últimos minutos.
 Verificar que la frecuencia de muestreo y los niveles de cuantificación 
 establecidos sean los apropiados para este tipo de señal. 
 
+```python  
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Cargar señal ECG desde Drive
+from google.colab import drive
+drive.mount('/content/drive')
+
+# Ruta del archivo
+ruta = '/content/lab 5 senal.txt'
+
+# Cargar datos
+data = np.loadtxt(ruta)    # <--- ESTA LÍNEA FALTABA
+ecg = data[:, 1]           # segunda columna
+
+# Frecuencia de muestreo
+fs = 1000  # Hz
+
+# Crear vector de tiempo
+t = np.arange(len(ecg)) / fs
+
+# Graficar un segmento
+
+inicio = 0        # en segundos
+duracion = 4      # segundos
+m1 = int(inicio * fs)
+m2 = int((inicio + duracion) * fs)
+
+plt.figure(figsize=(14,4))
+plt.plot(t[m1:m2], ecg[m1:m2], linewidth=0.8, color="red")
+plt.title(f"Segmento del ECG ({inicio}s a {inicio+duracion}s)")
+plt.xlabel("Tiempo (s)")
+plt.ylabel("Amplitud (mV)")
+plt.grid(True)
+plt.tight_layout()
+plt.show()
+```
 
 
 <img width="1389" height="390" alt="image" src="https://github.com/user-attachments/assets/7e1532b4-946b-4510-a43f-ec0b71fc3638" />
@@ -142,20 +179,175 @@ filto digital butterword
 def design_bandpass_butter(lowcut, highcut, fs, order=4):
 
 ```python  
-    nyq = 0.5 * fs
-    if lowcut <= 0:
-        low = 0.0001
-    else:
-        low = lowcut / nyq
-    high = min(highcut / nyq, 0.999)
-    if low >= high:
-        raise ValueError("Frecuencias de corte inválidas para el fs dado.")
-    b, a = butter(order, [low, high], btype='band')
-    return b, a
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.signal import butter, lfilter, find_peaks
 
-def apply_filter(b, a, signal):
-    return filtfilt(b, a, signal)
+# Cargar la señal (segunda columna del .txt)
+
+ruta = '/content/lab 5 senal.txt'
+
+data = np.loadtxt(ruta)
+ecg = data[:, 1]          # la segunda columna
+fs = 1000.0               # Hz (frecuencia de muestreo)
+
+t = np.arange(len(ecg)) / fs
+
+print("Forma de la señal:", ecg.shape)
+print("Duración total (s):", len(ecg)/fs)
+
+# Diseño del filtro IIR (Butterworth pasa banda 0.5–40 Hz)
+
+lowcut = 0.5   # Hz
+highcut = 40.0 # Hz
+order = 4      # orden del filtro IIR
+
+nyq = fs / 2.0
+low = lowcut / nyq
+high = highcut / nyq
+
+b, a = butter(order, [low, high], btype='bandpass')
+
+print("Coeficientes b:", b)
+print("Coeficientes a:", a)
+
+# --- Ecuación en diferencias (forma general) -----------------
+# y[n] = -a[1]*y[n-1] - a[2]*y[n-2] - ... - a[order]*y[n-order]
+#        + b[0]*x[n] + b[1]*x[n-1] + ... + b[order]*x[n-order]
+# (con condiciones iniciales y[n<0] = 0, x[n<0] = 0)
+
+#  Implementar el filtro (condiciones iniciales en 0)
+
+ecg_filt = lfilter(b, a, ecg)   # lfilter asume condiciones iniciales en 0
+
+# Comparar un segmento antes / después del filtrado
+inicio = 0       # s
+duracion = 4     # s
+m1 = int(inicio * fs)
+m2 = int((inicio + duracion) * fs)
+
+plt.figure(figsize=(14,4))
+plt.plot(t[m1:m2], ecg[m1:m2], label="ECG original", alpha=0.5)
+plt.plot(t[m1:m2], ecg_filt[m1:m2], label="ECG filtrada", linewidth=1)
+plt.title("Segmento de ECG (antes y después del filtrado)")
+plt.xlabel("Tiempo (s)")
+plt.ylabel("Amplitud (mV)")
+plt.grid(True)
+plt.legend()
+plt.tight_layout()
+plt.show()
+
+# Dividir la señal filtrada en 2 segmentos de 2 min
+
+dur_seg = 120  # segundos (2 minutos)
+N_seg = int(dur_seg * fs)
+
+seg1 = ecg_filt[0:N_seg]
+seg2 = ecg_filt[N_seg:2*N_seg]
+
+t1 = np.arange(len(seg1)) / fs
+t2 = np.arange(len(seg2)) / fs
+
+print("Muestras por segmento:", N_seg)
+
+# Detección de picos R en cada segmento
+
+# Parámetros básicos para find_peaks
+dist_min = int(0.3 * fs)  # al menos 300 ms entre latidos
+thr1 = np.mean(seg1) + 0.5*np.std(seg1)
+thr2 = np.mean(seg2) + 0.5*np.std(seg2)
+
+peaks1, _ = find_peaks(seg1, distance=dist_min, height=thr1)
+peaks2, _ = find_peaks(seg2, distance=dist_min, height=thr2)
+
+print("Nº de picos R en segmento 1:", len(peaks1))
+print("Nº de picos R en segmento 2:", len(peaks2))
+
+# Graficar picos R en cada segmento
+plt.figure(figsize=(14,4))
+plt.plot(t1, seg1, label="Segmento 1 filtrado")
+plt.plot(t1[peaks1], seg1[peaks1], "ro", label="Picos R")
+plt.title("Picos R - Segmento 1 (0–2 min)")
+plt.xlabel("Tiempo (s)")
+plt.ylabel("Amplitud (mV)")
+plt.grid(True)
+plt.legend()
+plt.tight_layout()
+plt.show()
+
+plt.figure(figsize=(14,4))
+plt.plot(t2, seg2, label="Segmento 2 filtrado")
+plt.plot(t2[peaks2], seg2[peaks2], "ro", label="Picos R")
+plt.title("Picos R - Segmento 2 (2–4 min)")
+plt.xlabel("Tiempo (s)")
+plt.ylabel("Amplitud (mV)")
+plt.grid(True)
+plt.legend()
+plt.tight_layout()
+plt.show()
+
+# Intervalos R-R en segundos
+rr1 = np.diff(peaks1) / fs
+rr2 = np.diff(peaks2) / fs
+
+# Tiempo asociado a cada RR (tomar el punto medio entre dos R)
+t_rr1 = t1[peaks1[1:]]   # o (t1[peaks1[1:]] + t1[peaks1[:-1]])/2
+t_rr2 = t2[peaks2[1:]]
+
+print("RR segmento 1 (s):", rr1[:10])
+print("RR segmento 2 (s):", rr2[:10])
+
+# Graficar nueva señal: serie R-R
+plt.figure(figsize=(10,4))
+plt.plot(t_rr1, rr1, "-o")
+plt.title("Nueva señal: intervalos R-R (Segmento 1)")
+plt.xlabel("Tiempo (s)")
+plt.ylabel("RR (s)")
+plt.grid(True)
+plt.tight_layout()
+plt.show()
+
+plt.figure(figsize=(10,4))
+plt.plot(t_rr2, rr2, "-o")
+plt.title("Nueva señal: intervalos R-R (Segmento 2)")
+plt.xlabel("Tiempo (s)")
+plt.ylabel("RR (s)")
+plt.grid(True)
+plt.tight_layout()
+plt.show()
+
 ```
+
+
+Nuestra frecuencia de muestreo fue de 1000 Hertz, las frecuencias de corte fueron de 0.5 Hz a 40 Hz.
+
+El orden del filtro fue de orden cuatro para la función de transferencia que se dio en el diseño, ya que este es un filtro, pasa banda, quiere decir que es un filtro IIR de octavo orden, porque hay cuatro polos para el corte bajo y cuatro para el corte alto lo que nos da una atenuación lo suficientemente amplia en la rechaza banda sin introducir una complejidad computacional.
+
+Implementación y ecuación en diferencias
+El filtro se implementó a través de su ecuación de diferencias, utilizando los coeficientes normalizados B, del numerador y A, del denominador que se obtuvieron en el diseño. A continuación, la ecuación fundamental.
+
+<img width="337" height="80" alt="image" src="https://github.com/user-attachments/assets/219b6d39-fdaf-4c9e-872c-95aa5f70a441" />
+
+En esta ecuación x[n] es la señal de entrada y y[n] es la es la señal ya filtrada. En la programación, la implementación con la función ‘lfilter’ asumir la señal en reposo, estableciendo las condiciones iniciales en cero tal como nos lo indica la guía. Como resultado, tenemos la gráfica del segmento electrocardiográfica filtrado que nos demuestra un excelente atenuación del ruido de la línea base y una alta definición de los picos R, lo que rectifica el funcionamiento del diseño del filtro IIR.
+
+Detección de picos R y generación de la serie RR.
+La señal filtrada que es aproximadamente de unos 244.35 segundos de duración, se segmentó en dos bloques de 120 segundos o dos minutos para permitir un análisis comparativo de la HR V. A lo largo del tiempo.
+
+
+<img width="1032" height="395" alt="image" src="https://github.com/user-attachments/assets/d858eb83-bca3-4d33-84f4-af69a2fee074" />
+
+
+Para la detección de los picos RS empleó la función de ‘find_peaks’ , la distancia mínima fue de 0.3 segundos y este valor evita la detección de artefactos que no son correspondientes a la onda QRS, como si fueran latidos independientes porque un corazón humano no puede tirar frecuencia superiores a los 3.33 latidos por segundo o 200 latidos por minuto de forma sostenida, se utilizó un umbral dinámico, basado en las estadísticas de los segmentos, en donde se adaptaron las variaciones de la amplitud y el ruido residual.
+
+En el primer segmento de cero a dos minutos se detectaron 196 picos R. Y en el segundo segmento de dos a cuatro minutos se detectaron 207 picos R.
+
+Los tiempos de ocurrencia de los picos se utilizaron para calcular la serie de intervalos RR, este intervalo se calcula como la diferencia de tiempo entre los dos picos R sucesivos.
+
+
+<img width="1041" height="678" alt="image" src="https://github.com/user-attachments/assets/03261957-1d2f-44bf-8402-53f8fb2c8d6f" />
+
+
+<img width="1109" height="777" alt="image" src="https://github.com/user-attachments/assets/b28cd08d-fe71-495b-af5d-a6604fded714" />
 
 
 
